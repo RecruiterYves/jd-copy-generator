@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { Dialog } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -142,22 +142,41 @@ export function ApiKeyDialog({ open, onOpenChange }: ApiKeyDialogProps) {
               value={localKey}
               onChange={(e) => setLocalKey(e.target.value)}
               placeholder={`Enter your ${providerLabel} API Key...`}
-              className="pr-10"
+              className="pr-20"
               aria-label="API Key"
             />
-            <button
-              type="button"
-              onClick={() => setShowKey((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-              aria-label={showKey ? 'Hide key' : 'Show key'}
-              tabIndex={-1}
-            >
-              {showKey ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-            </button>
+            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setLocalKey('');
+                  setApiKey(provider, '');
+                  toast({
+                    title: 'Key cleared',
+                    description: `${providerLabel} API key has been removed`,
+                    variant: 'success',
+                  });
+                }}
+                className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-destructive)] rounded transition-colors"
+                aria-label="Clear API key"
+                tabIndex={-1}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowKey((prev) => !prev)}
+                className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-text)] rounded transition-colors"
+                aria-label={showKey ? 'Hide key' : 'Show key'}
+                tabIndex={-1}
+              >
+                {showKey ? (
+                  <EyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -187,7 +206,6 @@ export function ApiKeyDialog({ open, onOpenChange }: ApiKeyDialogProps) {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={localKey.trim().length === 0}
             size="sm"
             className="flex-1"
           >
