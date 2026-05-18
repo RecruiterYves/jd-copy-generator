@@ -4,10 +4,6 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: HOST
-        value: 0.0.0.0
-      - key: PORT
-        value: "8000"
       - key: DEBUG
         value: "false"
       - key: MAX_FILE_SIZE_MB
