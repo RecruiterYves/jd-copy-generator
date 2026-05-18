@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend
 COPY backend/ ./
 
-# Copy frontend build (backend serves it as static files)
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+# Copy frontend build to /frontend/dist (matches main.py path resolution)
+COPY --from=frontend-build /app/frontend/dist /frontend/dist
 
 # Render assigns PORT dynamically via env var
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
