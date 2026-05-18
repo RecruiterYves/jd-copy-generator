@@ -44,6 +44,7 @@ export function ApiKeyDialog({ open, onOpenChange }: ApiKeyDialogProps) {
   const handleProviderChange = useCallback(
     (p: Provider) => {
       setProvider(p);
+      setModel(null);
       const storedKey =
         p === 'claude'
           ? claudeApiKey
@@ -52,7 +53,7 @@ export function ApiKeyDialog({ open, onOpenChange }: ApiKeyDialogProps) {
             : deepseekApiKey;
       setLocalKey(storedKey);
     },
-    [setProvider, claudeApiKey, openaiApiKey, deepseekApiKey],
+    [setProvider, setModel, claudeApiKey, openaiApiKey, deepseekApiKey],
   );
 
   const handleSave = useCallback(() => {
