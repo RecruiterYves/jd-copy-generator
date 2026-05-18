@@ -30,7 +30,7 @@ class DeepSeekProvider(LLMProvider):
 
     @property
     def default_model(self) -> str:
-        return "deepseek-chat"
+        return "deepseek-v4-pro"
 
     def cost_estimate(self, input_tokens: int, output_tokens: int) -> float:
         """DeepSeek-V3 pricing: $0.27 / 1M input tokens, $1.10 / 1M output tokens."""

@@ -25,8 +25,8 @@ export const OPENAI_MODELS = [
 ];
 
 export const DEEPSEEK_MODELS = [
-  { value: 'deepseek-chat', label: 'DeepSeek-V3' },
-  { value: 'deepseek-reasoner', label: 'DeepSeek-R1' },
+  { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' },
+  { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
 ];
 
 export const MAX_FILE_SIZE_MB = 10;
