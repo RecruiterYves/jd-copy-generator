@@ -1,8 +1,8 @@
 """LLM provider abstraction layer.
 
-Exposes the base types, concrete providers, and the factory function
-so that the rest of the application does not need to know about
-individual provider modules.
+Exposes the base types, concrete providers, and the factory function.
+Provider imports are lazy so that a missing optional SDK (e.g. anthropic)
+does not prevent other providers from being used.
 """
 
 from app.services.llm.base import (
@@ -14,7 +14,6 @@ from app.services.llm.base import (
     RateLimitError,
 )
 from app.services.llm.factory import create_provider
-from app.services.llm.deepseek_provider import DeepSeekProvider
 
 __all__ = [
     "LLMConfig",
@@ -24,5 +23,4 @@ __all__ = [
     "ProviderError",
     "RateLimitError",
     "create_provider",
-    "DeepSeekProvider",
 ]
