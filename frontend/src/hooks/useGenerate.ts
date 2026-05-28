@@ -11,6 +11,7 @@ export interface UseGenerateState {
 
 export interface UseGenerateReturn extends UseGenerateState {
   generate: (params: GenerateRequest) => Promise<void>;
+  completeWithResult: (result: GenerateResponse) => void;
   reset: () => void;
 }
 
@@ -58,9 +59,18 @@ export function useGenerate(): UseGenerateReturn {
     setState(initialState);
   }, []);
 
+  const completeWithResult = useCallback((result: GenerateResponse) => {
+    setState({
+      status: 'done',
+      result,
+      error: null,
+    });
+  }, []);
+
   return {
     ...state,
     generate,
+    completeWithResult,
     reset,
   };
 }

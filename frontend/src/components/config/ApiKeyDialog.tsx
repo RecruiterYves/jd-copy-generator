@@ -5,8 +5,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ProviderSelector } from './ProviderSelector';
 import { ModelSelector } from './ModelSelector';
-import { useAppContext } from '../../contexts/AppContext';
-import { useToast } from '../ui/toast';
+import { useAppContext } from '../../contexts/useAppContext';
+import { useToast } from '../ui/useToast';
 import { healthCheck } from '../../services/api';
 import type { Provider } from '../../types';
 

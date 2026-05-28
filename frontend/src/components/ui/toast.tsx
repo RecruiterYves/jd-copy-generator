@@ -1,14 +1,11 @@
 import {
-  createContext,
-  useContext,
   useState,
   useCallback,
   type ReactNode,
 } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { cn } from '../../lib/utils';
-
-type ToastVariant = 'default' | 'success' | 'error';
+import { ToastContext, type ToastVariant } from './toastContext';
 
 interface ToastItem {
   id: string;
@@ -16,12 +13,6 @@ interface ToastItem {
   description?: string;
   variant: ToastVariant;
 }
-
-interface ToastContextValue {
-  toast: (params: { title: string; description?: string; variant?: ToastVariant }) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 const iconMap: Record<ToastVariant, typeof Info> = {
   default: Info,
@@ -107,12 +98,4 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       </div>
     </ToastContext.Provider>
   );
-}
-
-export function useToast(): ToastContextValue {
-  const context = useContext(ToastContext);
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 }

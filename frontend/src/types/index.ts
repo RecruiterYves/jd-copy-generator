@@ -1,4 +1,4 @@
-export type Platform = 'tg' | 'red' | 'linkedin';
+export type Platform = 'tg' | 'red' | 'linkedin' | 'boss';
 export type Provider = 'claude' | 'openai' | 'deepseek';
 
 export interface ParsedDocument {
@@ -21,6 +21,7 @@ export interface GenerateRequest {
   api_key: string;
   model?: string;
   temperature?: number;
+  sensitive_terms?: string[];
 }
 
 export interface UsageInfo {
@@ -34,6 +35,13 @@ export interface GenerateResponse {
   content: string;
   usage: UsageInfo;
   model_used: string;
+  sensitive_matches?: SensitiveMatch[];
+  original_text?: string;
+}
+
+export interface SensitiveMatch {
+  term: string;
+  count: number;
 }
 
 export interface HealthResponse {

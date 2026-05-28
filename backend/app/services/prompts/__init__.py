@@ -5,6 +5,6 @@ system-level instruction string) and a ``user_prompt(jd_text|jd_texts)``
 function (builds the user-content prompt from one or more JD texts).
 """
 
-from app.services.prompts import tg, red, linkedin
+from app.services.prompts import boss, tg, red, linkedin
 
-__all__ = ["tg", "red", "linkedin"]
+__all__ = ["boss", "tg", "red", "linkedin"]

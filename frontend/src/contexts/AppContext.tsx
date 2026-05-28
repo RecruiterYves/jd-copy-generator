@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import type { AppContextType, Provider } from '../types';
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
+import { useState, useCallback, type ReactNode } from 'react';
+import type { Provider } from '../types';
+import { AppContext } from './appContextValue';
 
 const STORAGE_KEY_PROVIDER = 'jd-gen-provider';
 const STORAGE_KEY_CLAUDE_KEY = 'jd-gen-claude-key';
@@ -86,12 +85,4 @@ export function AppProvider({ children }: { children: ReactNode }) {
       {children}
     </AppContext.Provider>
   );
-}
-
-export function useAppContext(): AppContextType {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
 }

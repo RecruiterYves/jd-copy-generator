@@ -7,6 +7,7 @@ interface PlatformTabsProps {
 }
 
 const platformLabels: Record<Platform, { label: string; sub: string }> = {
+  boss: { label: 'Boss直聘', sub: 'Compliance' },
   tg: { label: 'Telegram', sub: 'Batch' },
   red: { label: '小红书', sub: 'Single' },
   linkedin: { label: 'LinkedIn', sub: 'Single' },

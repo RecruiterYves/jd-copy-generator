@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { AppProvider, useAppContext } from './contexts/AppContext';
-import { ToastProvider, useToast } from './components/ui/toast';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { AppProvider } from './contexts/AppContext';
+import { useAppContext } from './contexts/useAppContext';
+import { ToastProvider } from './components/ui/toast';
+import { useToast } from './components/ui/useToast';
 import { Layout } from './components/layout/Layout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
 import { Card, CardContent } from './components/ui/card';
@@ -8,6 +10,7 @@ import { Badge } from './components/ui/badge';
 import { Button } from './components/ui/button';
 import { PlatformTabs } from './components/platform/PlatformTabs';
 import { PlatformGuide } from './components/platform/PlatformGuide';
+import { BossSensitiveTermsEditor } from './components/platform/BossSensitiveTermsEditor';
 import { FileDropzone } from './components/upload/FileDropzone';
 import { TextPaste } from './components/upload/TextPaste';
 import { UploadPreview } from './components/upload/UploadPreview';
@@ -20,14 +23,37 @@ import { LoadingSkeleton } from './components/generation/LoadingSkeleton';
 import { useFileUpload } from './hooks/useFileUpload';
 import { useGenerate } from './hooks/useGenerate';
 import { healthCheck } from './services/api';
-import { PROVIDER_LABELS } from './lib/constants';
+import { DEFAULT_BOSS_SENSITIVE_TERMS, PROVIDER_LABELS } from './lib/constants';
+import { findSensitiveMatches, normalizeTerms } from './lib/sensitiveTerms';
 import { AlertCircle, Upload, FileText } from 'lucide-react';
 import type { Platform } from './types';
+
+const STORAGE_KEY_BOSS_TERMS = 'jd-gen-boss-sensitive-terms';
+
+function getStoredBossTerms(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_BOSS_TERMS);
+    if (!raw) {
+      return DEFAULT_BOSS_SENSITIVE_TERMS;
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const terms = normalizeTerms(parsed.filter((item) => typeof item === 'string'));
+      return terms.length > 0 ? terms : DEFAULT_BOSS_SENSITIVE_TERMS;
+    }
+  } catch {
+    // Ignore malformed localStorage values and fall back to defaults.
+  }
+  return DEFAULT_BOSS_SENSITIVE_TERMS;
+}
 
 function HomePage() {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('tg');
   const [inputTab, setInputTab] = useState<'upload' | 'paste'>('upload');
   const [pastedText, setPastedText] = useState('');
+  const [bossSensitiveTerms, setBossSensitiveTermsState] = useState<string[]>(
+    getStoredBossTerms,
+  );
 
   const fileUpload = useFileUpload();
   const generate = useGenerate();
@@ -45,11 +71,35 @@ function HomePage() {
   const hasPastedContent =
     inputTab === 'paste' && pastedText.trim().length > 0;
   const hasContent = hasFileContent || hasPastedContent;
+  const bossSourceText =
+    inputTab === 'upload'
+      ? (fileUpload.parsedResults[0]?.text ?? '')
+      : pastedText.trim();
+  const bossMatches = useMemo(
+    () =>
+      selectedPlatform === 'boss'
+        ? findSensitiveMatches(bossSourceText, bossSensitiveTerms)
+        : [],
+    [selectedPlatform, bossSourceText, bossSensitiveTerms],
+  );
+  const requiresApiKey = selectedPlatform !== 'boss' || bossMatches.length > 0;
+  const canGenerate = hasContent && (!requiresApiKey || hasApiKey);
 
   // Show the sticky bottom bar when there is content or a result
   const showBottomBar =
     (hasContent && generate.status === 'idle') ||
     generate.status === 'done';
+
+  const setBossSensitiveTerms = useCallback(
+    (terms: string[]) => {
+      const nextTerms = normalizeTerms(terms);
+      const finalTerms = nextTerms.length > 0 ? nextTerms : DEFAULT_BOSS_SENSITIVE_TERMS;
+      setBossSensitiveTermsState(finalTerms);
+      localStorage.setItem(STORAGE_KEY_BOSS_TERMS, JSON.stringify(finalTerms));
+      generate.reset();
+    },
+    [generate],
+  );
 
   // Handle platform change
   const handlePlatformChange = useCallback(
@@ -106,7 +156,9 @@ function HomePage() {
   const handleGenerate = useCallback(async () => {
     let texts: string[];
 
-    if (inputTab === 'upload') {
+    if (selectedPlatform === 'boss') {
+      texts = [bossSourceText];
+    } else if (inputTab === 'upload') {
       texts = fileUpload.parsedResults.map((d) => d.text);
     } else {
       if (selectedPlatform === 'tg') {
@@ -131,6 +183,22 @@ function HomePage() {
       return;
     }
 
+    if (selectedPlatform === 'boss' && bossMatches.length === 0) {
+      generate.completeWithResult({
+        platform: 'boss',
+        content: texts[0],
+        usage: {
+          input_tokens: 0,
+          output_tokens: 0,
+          cost_estimate_usd: 0,
+        },
+        model_used: 'local-scan',
+        sensitive_matches: [],
+        original_text: texts[0],
+      });
+      return;
+    }
+
     if (!hasApiKey) {
       toast({
         title: 'API Key required',
@@ -146,8 +214,12 @@ function HomePage() {
       provider,
       api_key: getActiveApiKey(),
       model: selectedModel ?? undefined,
+      sensitive_terms: selectedPlatform === 'boss' ? bossSensitiveTerms : undefined,
     });
   }, [
+    bossMatches.length,
+    bossSensitiveTerms,
+    bossSourceText,
     inputTab,
     fileUpload.parsedResults,
     pastedText,
@@ -192,6 +264,13 @@ function HomePage() {
 
       {/* Platform guide */}
       <PlatformGuide platform={selectedPlatform} />
+
+      {selectedPlatform === 'boss' && (
+        <BossSensitiveTermsEditor
+          terms={bossSensitiveTerms}
+          onTermsChange={setBossSensitiveTerms}
+        />
+      )}
 
       {/* Input method tabs */}
       <Card>
@@ -291,7 +370,7 @@ function HomePage() {
       )}
 
       {/* API key warning */}
-      {!hasApiKey && hasContent && generate.status === 'idle' && (
+      {!hasApiKey && hasContent && requiresApiKey && generate.status === 'idle' && (
         <div className="flex items-center gap-2 text-sm text-[var(--color-warning)] bg-[var(--color-warning-light)] border border-[var(--color-warning)]/20 rounded-xl px-4 py-2.5">
           <AlertCircle className="h-4 w-4 shrink-0" />
           Please configure your API Key in Settings before generating
@@ -351,7 +430,7 @@ function HomePage() {
               <GenerateButton
                 onClick={handleGenerate}
                 loading={false}
-                disabled={!hasContent || !hasApiKey}
+                disabled={!canGenerate}
               />
             )}
 
@@ -360,7 +439,7 @@ function HomePage() {
                 <GenerateButton
                   onClick={handleGenerate}
                   loading={false}
-                  disabled={!hasContent || !hasApiKey}
+                  disabled={!canGenerate}
                 />
                 <CopyButton text={generate.result.content} />
                 <Button

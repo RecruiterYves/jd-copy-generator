@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useClipboard } from '../../hooks/useClipboard';
-import { useToast } from '../ui/toast';
+import { useToast } from '../ui/useToast';
 
 interface CopyButtonProps {
   text: string;

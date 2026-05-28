@@ -2,6 +2,7 @@ import type { Platform } from '../../types';
 import { Info } from 'lucide-react';
 
 const guides: Record<Platform, string> = {
+  boss: '检测Boss直聘容易违规的敏感词，命中后标记原文并用AI自动删除或替换，保持JD原意顺畅。',
   tg: 'Upload multiple JDs to generate a summary post with all role titles and requirement highlights.',
   red: 'One role per post. Extracts 3 responsibilities, 3 requirements, and 3 nice-to-haves.',
   linkedin: 'JD translated to English, generating a LinkedIn-style professional recruitment post.',

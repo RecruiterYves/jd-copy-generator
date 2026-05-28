@@ -1,6 +1,7 @@
 import type { Provider, Platform } from '../types';
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
+  boss: 'Boss直聘',
   tg: 'Telegram',
   red: '小红书',
   linkedin: 'LinkedIn',
@@ -31,3 +32,20 @@ export const DEEPSEEK_MODELS = [
 
 export const MAX_FILE_SIZE_MB = 10;
 export const ACCEPTED_FILE_TYPES = ['.pdf', '.docx', '.txt'];
+
+export const DEFAULT_BOSS_SENSITIVE_TERMS = [
+  'K线行情',
+  '交易所',
+  '合约',
+  '杠杆',
+  '期权',
+  '去中心化',
+  '加密货币',
+  'USDT',
+  '出海',
+  '稳定币',
+  '做多做空',
+  'Crypto',
+  'BTC',
+  'ETH',
+];

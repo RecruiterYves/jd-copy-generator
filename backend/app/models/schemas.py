@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ParsedDocument(BaseModel):
@@ -20,9 +20,9 @@ class UploadResponse(BaseModel):
 
 class GenerateRequest(BaseModel):
     """Request to generate copy from parsed job descriptions."""
-    platform: Literal["tg", "red", "linkedin"] = Field(
+    platform: Literal["tg", "red", "linkedin", "boss"] = Field(
         ...,
-        description="Target platform: tg (Telegram), red (Reddit/Xiaohongshu), linkedin (LinkedIn)",
+        description="Target platform: tg, red, linkedin, or boss",
     )
     texts: List[str] = Field(
         ...,
@@ -35,7 +35,6 @@ class GenerateRequest(BaseModel):
     )
     api_key: str = Field(
         ...,
-        min_length=1,
         description="API key for the LLM provider",
     )
     model: Optional[str] = Field(
@@ -48,6 +47,17 @@ class GenerateRequest(BaseModel):
         le=2.0,
         description="Sampling temperature (0.0 to 2.0). Provider default used if unset.",
     )
+    sensitive_terms: Optional[List[str]] = Field(
+        default=None,
+        description="Boss compliance sensitive terms to detect and rewrite around.",
+    )
+
+    @model_validator(mode="after")
+    def require_api_key_for_llm_platforms(self) -> "GenerateRequest":
+        """Boss local scans may skip AI; other platforms always need a key."""
+        if self.platform != "boss" and not self.api_key.strip():
+            raise ValueError("API key is required for this platform.")
+        return self
 
 
 class UsageInfo(BaseModel):
@@ -57,12 +67,20 @@ class UsageInfo(BaseModel):
     cost_estimate_usd: float = 0.0
 
 
+class SensitiveMatch(BaseModel):
+    """Sensitive term match summary for Boss compliance mode."""
+    term: str
+    count: int
+
+
 class GenerateResponse(BaseModel):
     """Response from the generate endpoint."""
-    platform: Literal["tg", "red", "linkedin"]
+    platform: Literal["tg", "red", "linkedin", "boss"]
     content: str
     usage: UsageInfo = Field(default_factory=UsageInfo)
     model_used: str
+    sensitive_matches: List[SensitiveMatch] = Field(default_factory=list)
+    original_text: Optional[str] = None
 
 
 class HealthResponse(BaseModel):
